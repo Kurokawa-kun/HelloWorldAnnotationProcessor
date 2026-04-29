@@ -1,0 +1,51 @@
+plugins
+{
+    id 'java-library'
+}
+
+repositories
+{
+    mavenCentral()
+}
+
+dependencies
+{
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java
+{
+    toolchain
+    {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.named('test')
+{
+    useJUnitPlatform()
+}
+
+tasks.named('jar')
+{
+    archiveFileName = 'HelloWorld.jar'
+}
+
+jar
+{
+    manifest
+    {
+        attributes('Automatic-Module-Name': 'HelloWorld')
+    }
+}
+
+tasks.withType(JavaCompile)
+{
+    //  以下のパッケージ内のクラスはALL-UNNAMED（全無名モジュール）に対してアクセスを許可すること。
+    //  特定のモジュール名を指定してもコンパイルは通りますが、使用時（アノテーションプロセッサの動作時）にコンパイラの実行環境を取得できません。
+    //  当該パッケージが名前付きモジュールにアクセスを許可していないためです。
+    options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED'
+    options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+    options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED'
+}

@@ -1,0 +1,4 @@
+module mymodule
+{
+    requires HelloWorld;
+}

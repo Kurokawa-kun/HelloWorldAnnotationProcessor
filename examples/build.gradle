@@ -1,0 +1,58 @@
+plugins
+{
+    id 'application'
+}
+
+repositories
+{
+    mavenCentral()
+}
+
+dependencies
+{
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
+    //  プロジェクトの依存関係
+    implementation project(':lib')
+    //  アノテーションプロセッサの追加
+    annotationProcessor project(':lib')
+}
+
+java
+{
+    toolchain
+    {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+application
+{
+    mainClass = 'App1'
+}
+
+tasks.named('test')
+{
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile)
+{
+    //  コンパイラは必ず別プロセスで起動してください。
+    //  
+    //  コンパイラの後に呼び出されるアノテーションプロセッサにまで-add-exportsオプションが渡っている必要があるためです。
+    //  同じプロセスから呼び出した場合、指定したオプションはコンパイラに「のみ」渡され、
+    //  後続のアノテーションプロセッサには-Aで指定したオプションだけが渡されます。結果、アノテーションプロセッサが正常に動作しません。
+    //  
+    //  別プロセスとすることで、JVMに起動オプションとして--add-exportsを渡すことができるため、
+    //  後続のコンパイラにもアノテーションプロセッサにも--add-exportsが伝わります。
+    //
+    //  またGradleの仕様によりoptions.compilerArgsに-Jオプション（実行時オプション）を指定することはできません。
+    //  -Jオプションは必ずoptions.forkOptions.jvmArgsに記述する必要があります。
+    options.fork = true
+    options.forkOptions.jvmArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED'
+    options.forkOptions.jvmArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+    options.forkOptions.jvmArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED'
+    options.compilerArgs += '-Averbose=true'
+}
